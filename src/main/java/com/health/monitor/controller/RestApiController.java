@@ -12,11 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.health.monitor.bean.PatientRecord;
 import com.health.monitor.response.AllStorageResponse;
+import com.health.monitor.response.PatientStorageResponse;
 import com.health.monitor.response.StorageResponse;
 import com.health.monitor.util.DBUtil;
 
@@ -83,5 +87,55 @@ public class RestApiController {
 	public String getRoot() throws Exception
 	{
 		return "<html><head><title>Home Page</title></head><body><h1>Welcome to the home page of virtual healthcare assistant</h1></body></html>";
+	}
+	
+	@PostMapping(path="/storePatient",produces="application/json",consumes="application/json")
+	ResponseEntity<?> storePatient(@RequestBody PatientRecord record) throws Exception
+	{
+		Connection conn = DBUtil.getDBConnection();
+		ResultSet result;
+		int id;
+		String sql = "INSERT INTO patient_record(name,age,male,currSmoker,cigsPerDay,bpMeds,prevStroke,prevHyp,diab,totchol,bmi,glucose,tenYearCHD,id_ref) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+		stmt.setString(1, record.getName());
+		stmt.setInt(2, record.getAge());
+		stmt.setInt(3, record.getMale());
+		stmt.setInt(4, record.getCurrSmoker());
+		stmt.setInt(5, record.getCigsPerDay());
+		stmt.setInt(6, record.getBpMeds());
+		stmt.setInt(7, record.getPrevStroke());
+		stmt.setInt(8, record.getPrevHyp());
+		stmt.setInt(9, record.getDiab());
+		stmt.setDouble(10, record.getTotchol());
+		stmt.setDouble(11, record.getBMI());
+		stmt.setDouble(12, record.getGlucose());
+		stmt.setInt(13, record.getTenYearCHD());
+		stmt.setInt(14, record.getId_ref());
+		stmt.executeUpdate();
+		result = stmt.getGeneratedKeys();
+		if(result.next())
+		{
+			id = result.getInt(1);
+		}
+		else
+		{
+			throw new Exception("Error in storing");
+		}
+		return new ResponseEntity<PatientStorageResponse>(new PatientStorageResponse(id,record.getId_ref(),record.getName()), HttpStatus.OK);
+	}
+	@GetMapping(path="/getLast2daysRecords")
+	ResponseEntity<?> getLast2daysRecords(@RequestParam int id_ref) throws Exception {
+		Connection conn = DBUtil.getDBConnection();
+		ResultSet result;
+		PreparedStatement stmt;
+		String sql = "select * from test where id_ref="+String.valueOf(id_ref);
+		stmt = conn.prepareStatement(sql);
+		result = stmt.executeQuery();
+		List<StorageResponse> lst = new ArrayList<StorageResponse>();
+		while(result.next())
+		{
+			lst.add(new StorageResponse(result.getInt(1), result.getDouble(2), result.getDouble(3), result.getDouble(5), String.valueOf(result.getDate(6)), result.getDouble(4), result.getInt(7)));
+		}
+		return new ResponseEntity<AllStorageResponse>(new AllStorageResponse(lst),HttpStatus.OK);
 	}
 }
