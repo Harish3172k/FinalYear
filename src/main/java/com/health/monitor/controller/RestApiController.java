@@ -138,4 +138,39 @@ public class RestApiController {
 		}
 		return new ResponseEntity<AllStorageResponse>(new AllStorageResponse(lst),HttpStatus.OK);
 	}
+	@GetMapping(path="/getPatientRecord")
+	@ResponseBody
+	public String getPatientRecord() throws Exception
+	{
+		Connection conn = DBUtil.getDBConnection();
+		ResultSet result;
+		PreparedStatement stmt;
+		String sql = "select * from patient_record";
+		stmt = conn.prepareStatement(sql);
+		result = stmt.executeQuery();
+		String ans = "<html><head><style>\ntable,th,td {\nborder: 1px solid black\n}</style><title>Dummy page</title></head><body>";
+		ans += "<table style=\"width:100%\"><tr><th>ID</th><th>name</th><th>age</th><th>male</th><th>currSmoker</th><th>cigsPerDay</th><th>bpMeds</th><th>prevStroke</th><th>prevHyp</th><th>diab</th><th>totchol</th><th>bmi</th><th>glucose</th><th>tenYearCHD</th><th>id_ref</th></tr>";
+		while(result.next())
+		{
+			ans += "<tr>\n";
+			ans += "<td>"+String.valueOf(result.getInt(1))+"</td>";
+			ans += "<td>"+String.valueOf(result.getString(2))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(3))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(4))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(5))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(6))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(7))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(8))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(9))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(10))+"</td>";
+			ans += "<td>"+String.valueOf(result.getDouble(11))+"</td>";
+			ans += "<td>"+String.valueOf(result.getDouble(12))+"</td>";
+			ans += "<td>"+String.valueOf(result.getDouble(13))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(14))+"</td>";
+			ans += "<td>"+String.valueOf(result.getInt(15))+"</td>";
+			ans += "</tr>";
+		}
+		ans+="</table></body></html>";
+		return ans;
+	}
 }
